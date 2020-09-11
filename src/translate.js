@@ -1209,9 +1209,10 @@ const customQuery = ({
     resolveInfo
   });
 
+  // Workaround for accept returning nested lists in cypher query
   mapProjection = mapProjection === '`node` {undefined}' ? '`node` { .* }' : mapProjection
 
-  const query = `WITH apoc.cypher.runFirstColumn("${
+  let query = `WITH apoc.cypher.runFirstColumn("${
     cypherQueryArg.value.value
   }", ${argString ||
     'null'}, True) AS x ${labelPredicate}UNWIND x AS ${safeVariableName} RETURN ${
@@ -1219,6 +1220,9 @@ const customQuery = ({
       ? `${mapProjection} `
       : `${mapProjection} AS ${safeVariableName}${orderByClause}`
   }${outerSkipLimit}`;
+
+  // Workaround for replace cypher parameters constructor
+  Object.keys(params).forEach((el) => query = query.replace('#' + el + '#', params[el]))
 
   return [query, {
     ...params,
