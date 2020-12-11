@@ -1210,7 +1210,7 @@ const customQuery = ({
   });
 
   // Workaround for accept returning nested lists in cypher query
-  mapProjection = mapProjection === '`node` {undefined}' ? '`node` { .* }' : mapProjection
+  mapProjection = mapProjection === '`node` { .* }' ? '`node` { .* }' : mapProjection
 
   let query = `WITH apoc.cypher.runFirstColumn("${
     cypherQueryArg.value.value
