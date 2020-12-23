@@ -1213,7 +1213,7 @@ const customQuery = ({
   if (mapProjection.includes('{undefined}')) {
       mapProjection = mapProjection.replace('{undefined}', '{ .* }')
   }
-   
+  // -----
 
   let query = `WITH apoc.cypher.runFirstColumn("${
     cypherQueryArg.value.value
@@ -1226,6 +1226,8 @@ const customQuery = ({
 
   // Workaround for replace cypher parameters constructor
   Object.keys(params).forEach((el) => query = query.replace('#' + el + '#', params[el]))
+
+  // -----
 
   return [query, {
     ...params,
@@ -1659,6 +1661,15 @@ const customMutation = ({
     resolveInfo
   });
   let query = '';
+
+    // Workaround for dynamic fields and return nested maps
+
+  Object.keys(params).forEach(function (el) {
+    return cypherQueryArg.value.value = cypherQueryArg.value.value.replace('#' + el + '#', params[el]);
+  });  
+
+  // -----
+
   if (labelPredicate) {
     query = `CALL apoc.cypher.doIt("${
       cypherQueryArg.value.value
@@ -1699,6 +1710,13 @@ const customMutation = ({
   if (cypherParams) {
     params['cypherParams'] = cypherParams;
   }
+
+  // Workaround for dynamic fields and return nested maps
+
+  query = query.includes('{undefined}') ? query.replace('{undefined}', '{ .* }') : query;
+
+  // ----
+
   return [query, {
     ...params
   }];
