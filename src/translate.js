@@ -1225,7 +1225,7 @@ const customQuery = ({
   }${outerSkipLimit}`;
 
   // Workaround for replace cypher parameters constructor
-  Object.keys(params).forEach((el) => query = query.replace('#' + el + '#', params[el]))
+  Object.keys(params).forEach((el) => query = replaceAll(query, '#' + el + '#', params[el]))
 
   // -----
 
@@ -1599,6 +1599,10 @@ export const translateMutation = ({
   }
 };
 
+const replaceAll = (str, find, replace) => {
+  return str.replace(new RegExp(find, 'g'), replace);
+}
+
 // Custom write operation
 const customMutation = ({
   params,
@@ -1662,17 +1666,18 @@ const customMutation = ({
   });
   let query = '';
 
-    // Workaround for dynamic fields and return nested maps
+  // Workaround for dynamic fields and return nested maps
+  let cypherQueryArgValue = cypherQueryArg.value.value
 
   Object.keys(params).forEach(function (el) {
-    return cypherQueryArg.value.value = cypherQueryArg.value.value.replace('#' + el + '#', params[el]);
+    return cypherQueryArgValue = replaceAll(cypherQueryArgValue, '#' + el + '#', params[el]);
   });  
 
   // -----
 
   if (labelPredicate) {
     query = `CALL apoc.cypher.doIt("${
-      cypherQueryArg.value.value
+      cypherQueryArgValue
     }", ${argString}) YIELD value
     ${!isScalarField ? labelPredicate : ''}AS ${safeVariableName}
     RETURN ${
@@ -1682,7 +1687,7 @@ const customMutation = ({
     }`;
   } else {
     query = `CALL apoc.cypher.doIt("${
-      cypherQueryArg.value.value
+      cypherQueryArgValue
     }", ${argString}) YIELD value
     WITH ${listVariable}AS ${safeVariableName}
     RETURN ${safeVariableName} ${
